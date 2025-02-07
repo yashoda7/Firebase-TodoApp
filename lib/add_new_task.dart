@@ -1,7 +1,10 @@
 import 'dart:io';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dotted_border/dotted_border.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flex_color_picker/flex_color_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:frontend/utils.dart';
 import 'package:intl/intl.dart';
 
 class AddNewTask extends StatefulWidget {
@@ -25,6 +28,24 @@ class _AddNewTaskState extends State<AddNewTask> {
     super.dispose();
   }
 
+  Future<void> updateTaskToDb() async {
+    try{
+       final data=await FirebaseFirestore.instance.collection("tasks").add(
+          {
+            "title": titleController.text.trim(),
+            "description": descriptionController.text.trim(),
+            "date": FieldValue.serverTimestamp(),
+            "color": rgbToHex(_selectedColor),
+            // "attachment": file?.path?? "",
+          }
+        );
+        print(data.id);
+    }
+    catch(e){
+      print(e);
+    }
+
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -33,6 +54,7 @@ class _AddNewTaskState extends State<AddNewTask> {
         actions: [
           GestureDetector(
             onTap: () async {
+              // updateTaskToDb
               final selDate = await showDatePicker(
                 context: context,
                 firstDate: DateTime.now(),
@@ -122,7 +144,9 @@ class _AddNewTaskState extends State<AddNewTask> {
               ),
               const SizedBox(height: 10),
               ElevatedButton(
-                onPressed: () {},
+                onPressed: () async{
+                  updateTaskToDb();
+                },
                 child: const Text(
                   'SUBMIT',
                   style: TextStyle(
